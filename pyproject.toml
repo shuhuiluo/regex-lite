@@ -1,6 +1,13 @@
-[project]
-name = "regex-lite"
-version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.9"
-dependencies = []
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-select = ["I"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = ["engine/tests", "api/tests"]
