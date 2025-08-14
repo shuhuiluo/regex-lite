@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "regex-lite-api"
+version = "0.0.1"
+description = "FastAPI service for regex-lite"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "regex-lite-engine @ file:../engine",
+]
+
+[project.optional-dependencies]
+dev = ["httpx", "pytest"]

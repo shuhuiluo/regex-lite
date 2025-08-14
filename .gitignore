@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+# Node
+node_modules/
+web/node_modules/
+web/dist/
+
+# Vite
+vite.config.ts.timestamp-*
