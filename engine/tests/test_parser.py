@@ -1,10 +1,4 @@
-import pathlib
-import sys
-
 import pytest
-
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
-
 from regex_lite import ast, parser
 
 

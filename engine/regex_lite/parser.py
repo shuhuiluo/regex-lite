@@ -237,7 +237,11 @@ class Parser:
             return ast.Literal("^")
         # Any other token inside class is treated as literal of its value
         self.advance()
-        return ast.Literal(t.value if t.value is not None else "")
+        if t.value is None:
+            raise RegexSyntaxError(
+                "unexpected token with no value in character class", t.pos
+            )
+        return ast.Literal(t.value)
 
 
 def parse(pattern: str) -> ast.Expr:

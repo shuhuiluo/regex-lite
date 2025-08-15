@@ -1,8 +1,3 @@
-import pathlib
-import sys
-
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
-
 from regex_lite.lexer import tokenize
 from regex_lite.tokens import TokenType
 
