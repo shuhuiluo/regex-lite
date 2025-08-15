@@ -1,40 +1,73 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Union
 
 
-class Node:
+class Expr:
+    """Base class for all AST nodes."""
+
+
+@dataclass
+class Literal(Expr):
+    char: str
+
+
+@dataclass
+class Dot(Expr):
     pass
 
 
 @dataclass
-class Literal(Node):
-    value: str
-
-
-@dataclass
-class Dot(Node):
+class AnchorStart(Expr):
     pass
 
 
 @dataclass
-class Sequence(Node):
-    parts: List[Node]
+class AnchorEnd(Expr):
+    pass
 
 
 @dataclass
-class Alternation(Node):
-    left: Node
-    right: Node
+class Shorthand(Expr):
+    kind: str  # 'd','D','w','W','s','S'
 
 
 @dataclass
-class Repeat(Node):
-    expr: Node
-    op: str
+class Range:
+    start: str
+    end: str
+
+
+ClassItem = Union[Literal, Range, Shorthand]
 
 
 @dataclass
-class Group(Node):
-    expr: Node
+class CharClass(Expr):
+    items: List[ClassItem]
+    negated: bool = False
+
+
+@dataclass
+class Group(Expr):
+    expr: Expr
+    index: int
+
+
+@dataclass
+class Concat(Expr):
+    parts: List[Expr]
+
+
+@dataclass
+class Alt(Expr):
+    options: List[Expr]
+
+
+@dataclass
+class Repeat(Expr):
+    expr: Expr
+    kind: str  # '*', '+', '?', '{m}', '{m,}', '{m,n}'
+    m: int | None = None
+    n: int | None = None
+

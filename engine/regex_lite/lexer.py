@@ -1,42 +1,136 @@
 from __future__ import annotations
 
+from typing import List
+
 from .tokens import Token, TokenType
 
 
+_HEX_DIGITS = "0123456789abcdefABCDEF"
+_ESCAPABLE = ".*+?|()[]{}^$\\"
+_SHORTHANDS = "dDwWsS"
+
+
 class Lexer:
+    """Simple lexer for the regex language.
+
+    It performs a single left-to-right pass and emits :class:`Token` objects
+    annotated with their position in the original pattern.  The lexer itself is
+    purposely small – validation of constructs is largely deferred to the
+    parser.
+    """
+
     def __init__(self, pattern: str) -> None:
         self.pattern = pattern
+        self.length = len(pattern)
+        self.i = 0
+        self.in_class = False
 
-    def tokenize(self) -> list[Token]:
-        tokens: list[Token] = []
-        i = 0
-        while i < len(self.pattern):
-            ch = self.pattern[i]
-            if ch == "\\":
-                i += 1
-                if i >= len(self.pattern):
-                    raise ValueError("dangling escape")
-                tokens.append(Token(TokenType.CHAR, self.pattern[i]))
-            elif ch == ".":
-                tokens.append(Token(TokenType.DOT))
-            elif ch == "*":
-                tokens.append(Token(TokenType.STAR))
-            elif ch == "+":
-                tokens.append(Token(TokenType.PLUS))
-            elif ch == "?":
-                tokens.append(Token(TokenType.QUESTION))
-            elif ch == "(":
-                tokens.append(Token(TokenType.LPAREN))
-            elif ch == ")":
-                tokens.append(Token(TokenType.RPAREN))
-            elif ch == "|":
-                tokens.append(Token(TokenType.PIPE))
+    # ------------------------------------------------------------------
+    # core utilities
+    def _current(self) -> str:
+        return self.pattern[self.i]
+
+    def _advance(self, n: int = 1) -> None:
+        self.i += n
+
+    def _eof(self) -> bool:
+        return self.i >= self.length
+
+    # ------------------------------------------------------------------
+    def tokenize(self) -> List[Token]:
+        tokens: List[Token] = []
+        while not self._eof():
+            pos = self.i
+            ch = self._current()
+            if self.in_class:
+                token, value = self._lex_class_char(pos, ch)
             else:
-                tokens.append(Token(TokenType.CHAR, ch))
-            i += 1
-        tokens.append(Token(TokenType.EOF))
+                token, value = self._lex_regular_char(pos, ch)
+            tokens.append(Token(token, value, pos))
+            if token == TokenType.LBRACKET:
+                self.in_class = True
+            elif token == TokenType.RBRACKET:
+                self.in_class = False
+        tokens.append(Token(TokenType.EOF, pos=self.i))
         return tokens
 
+    # ------------------------------------------------------------------
+    def _read_escape(self, pos: int, in_class: bool) -> tuple[TokenType, str | None]:
+        """Handle escape sequences starting after the backslash."""
 
-def tokenize(pattern: str) -> list[Token]:
+        if self._eof():
+            raise ValueError("dangling escape")
+        ch = self._current()
+        self._advance()
+        if ch in "tnr":
+            mapping = {"t": "\t", "n": "\n", "r": "\r"}
+            return TokenType.CHAR, mapping[ch]
+        if ch == "x":
+            if self.i + 1 >= self.length:
+                raise ValueError("incomplete hex escape")
+            hex_digits = self.pattern[self.i : self.i + 2]
+            if any(c not in _HEX_DIGITS for c in hex_digits):
+                raise ValueError("invalid hex escape")
+            self._advance(2)
+            return TokenType.CHAR, chr(int(hex_digits, 16))
+        if ch in _SHORTHANDS:
+            return TokenType.SHORTHAND, ch
+        if ch in _ESCAPABLE or (in_class and ch in "-]"):
+            return TokenType.CHAR, ch
+        # Unknown escape -> literal character
+        return TokenType.CHAR, ch
+
+    def _lex_regular_char(self, pos: int, ch: str) -> tuple[TokenType, str | None]:
+        self._advance()
+        if ch == "\\":
+            token, value = self._read_escape(pos + 1, False)
+            return token, value
+        if ch == ".":
+            return TokenType.DOT, None
+        if ch == "*":
+            return TokenType.STAR, None
+        if ch == "+":
+            return TokenType.PLUS, None
+        if ch == "?":
+            return TokenType.QUESTION, None
+        if ch == "(":
+            return TokenType.LPAREN, None
+        if ch == ")":
+            return TokenType.RPAREN, None
+        if ch == "[":
+            return TokenType.LBRACKET, None
+        if ch == "]":
+            return TokenType.RBRACKET, None
+        if ch == "{" :
+            return TokenType.LBRACE, None
+        if ch == "}":
+            return TokenType.RBRACE, None
+        if ch == "|":
+            return TokenType.PIPE, None
+        if ch == "^":
+            return TokenType.CARET, None
+        if ch == "$":
+            return TokenType.DOLLAR, None
+        if ch == "-":
+            # outside char class hyphen is literal
+            return TokenType.CHAR, "-"
+        if ch == ",":
+            return TokenType.COMMA, None
+        return TokenType.CHAR, ch
+
+    def _lex_class_char(self, pos: int, ch: str) -> tuple[TokenType, str | None]:
+        self._advance()
+        if ch == "\\":
+            return self._read_escape(pos + 1, True)
+        if ch == "]":
+            return TokenType.RBRACKET, None
+        if ch == "-":
+            return TokenType.DASH, None
+        # caret has special meaning only in first position which parser handles
+        if ch == "^":
+            return TokenType.CARET, None
+        return TokenType.CHAR, ch
+
+
+def tokenize(pattern: str) -> List[Token]:
     return Lexer(pattern).tokenize()
