@@ -123,9 +123,11 @@ bun run dev
 # Production build
 bun run build && bun run preview
 
-# Type checking and linting
+# Type checking, linting, and formatting
 bun run type-check
 bun run lint
+bun run format
+bun run format:check
 ```
 
 ## Contributing

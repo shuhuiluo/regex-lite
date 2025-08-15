@@ -9,7 +9,13 @@ members = [
 ]
 
 [manifest.dependency-groups]
-dev = [{ name = "httpx", specifier = ">=0.28.1" }]
+dev = [
+    { name = "black" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "hypothesis" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
 
 [[package]]
 name = "annotated-types"
@@ -438,23 +444,6 @@ provides-extras = ["dev"]
 name = "regex-lite-engine"
 version = "0.0.1"
 source = { editable = "engine" }
-
-[package.optional-dependencies]
-dev = [
-    { name = "black" },
-    { name = "hypothesis" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "black", marker = "extra == 'dev'" },
-    { name = "hypothesis", marker = "extra == 'dev'" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "ruff", marker = "extra == 'dev'" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "ruff"
