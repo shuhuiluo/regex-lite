@@ -128,7 +128,11 @@ class Parser:
         """Read a decimal number from the input, returning ``None`` if absent."""
 
         digits: List[str] = []
-        while self.peek().type == TokenType.CHAR and self.peek().value.isdigit():
+        while (
+            self.peek().type == TokenType.CHAR
+            and self.peek().value is not None
+            and self.peek().value.isdigit()
+        ):
             digits.append(self.advance().value)
         if not digits:
             return None

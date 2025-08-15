@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import List
 
 from .tokens import Token, TokenType
@@ -85,6 +86,11 @@ class Lexer:
         if ch in _ESCAPABLE or (in_class and ch in "-]"):
             return TokenType.CHAR, ch
         # Unknown escape -> literal character
+        warnings.warn(
+            f"Unknown escape sequence '\\{ch}' at position {pos} is treated as a literal character. "
+            "This may not match standard regex behavior.",
+            UserWarning,
+        )
         return TokenType.CHAR, ch
 
     def _lex_regular_char(self, pos: int, ch: str) -> tuple[TokenType, str | None]:
