@@ -5,12 +5,10 @@ members = ["engine", "api"]
 line-length = 88
 target-version = ["py311"]
 
-[tool.ruff.lint]
-extend-select = ["I"]
-
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+extend-select = ["I"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
