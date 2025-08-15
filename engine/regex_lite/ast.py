@@ -1,40 +1,88 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Union
 
 
-class Node:
-    pass
-
-
-@dataclass
-class Literal(Node):
-    value: str
+class Expr:
+    """Base class for all AST nodes."""
 
 
 @dataclass
-class Dot(Node):
-    pass
+class Literal(Expr):
+    """Single literal character, e.g. ``a`` in ``a+``."""
+
+    char: str
 
 
 @dataclass
-class Sequence(Node):
-    parts: List[Node]
+class Dot(Expr):
+    """Wildcard ``.`` that matches any character."""
 
 
 @dataclass
-class Alternation(Node):
-    left: Node
-    right: Node
+class AnchorStart(Expr):
+    """Beginning-of-string anchor ``^``."""
 
 
 @dataclass
-class Repeat(Node):
-    expr: Node
-    op: str
+class AnchorEnd(Expr):
+    """End-of-string anchor ``$``."""
 
 
 @dataclass
-class Group(Node):
-    expr: Node
+class Shorthand(Expr):
+    r"""Shorthand character classes like ``\d`` or ``\w``."""
+
+    kind: str  # 'd','D','w','W','s','S'
+
+
+@dataclass
+class Range:
+    """Character range ``a-z`` inside a character class."""
+
+    start: str
+    end: str
+
+
+ClassItem = Union[Literal, Range, Shorthand]
+
+
+@dataclass
+class CharClass(Expr):
+    """Character class, e.g. ``[a-z]`` or ``[^0-9]``."""
+
+    items: List[ClassItem]
+    negated: bool = False
+
+
+@dataclass
+class Group(Expr):
+    """Capturing group ``( ... )`` with 1-based ``index``."""
+
+    expr: Expr
+    index: int
+
+
+@dataclass
+class Concat(Expr):
+    """Sequence of expressions concatenated together, e.g. ``ab``."""
+
+    parts: List[Expr]
+
+
+@dataclass
+class Alt(Expr):
+    """Alternation ``a|b`` between multiple ``options``."""
+
+    options: List[Expr]
+
+
+@dataclass
+class Repeat(Expr):
+    """Quantifier like ``*`` or ``{m,n}`` applying to ``expr``."""
+
+    expr: Expr
+    kind: str  # '*', '+', '?', '{m}', '{m,}', '{m,n}'
+    m: int | None = None
+    n: int | None = None
