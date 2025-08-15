@@ -10,4 +10,7 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest", "hypothesis"]
+dev = ["pytest", "hypothesis", "ruff", "black"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["regex_lite"]

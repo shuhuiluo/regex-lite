@@ -1,20 +1,19 @@
 .PHONY: install dev-api dev-web test fmt
 
 install:
-pip install -e engine[dev]
-pip install -e api[dev]
-npm --prefix web install
-echo 'Install complete'
+	uv sync
+	cd web && bun install
+	echo 'Install complete'
 
 dev-api:
-UVICORN_RELOAD_DIRS=api uvicorn api.main:create_app --factory --reload
+	uv run uvicorn api.main:create_app --factory --reload --reload-dir api
 
 dev-web:
-npm --prefix web run dev
+	cd web && bun run dev
 
 test:
-pytest engine/tests api/tests
+	uv run pytest
 
 fmt:
-ruff .
-black .
+	uv run ruff check . --fix
+	uv run black .

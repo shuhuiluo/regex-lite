@@ -11,8 +11,14 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "pydantic",
-    "regex-lite-engine @ file:../engine",
+    "regex-lite-engine",
 ]
+
+[tool.uv.sources]
+regex-lite-engine = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["api"]
 
 [project.optional-dependencies]
 dev = ["httpx", "pytest"]
