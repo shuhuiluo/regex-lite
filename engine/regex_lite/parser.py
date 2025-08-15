@@ -73,15 +73,6 @@ class Parser:
             t = self.peek()
             if t.type in {TokenType.EOF, TokenType.RPAREN, TokenType.PIPE}:
                 break
-            # handle stray '?' after a quantifier (e.g. '+?') as a literal
-            if (
-                t.type == TokenType.QUESTION
-                and parts
-                and isinstance(parts[-1], ast.Repeat)
-            ):
-                self.advance()
-                parts.append(ast.Literal("?"))
-                continue
             parts.append(self.parse_repeat())
         if not parts:
             raise RegexSyntaxError("expected expression", self.peek().pos)
@@ -104,7 +95,7 @@ class Parser:
         while True:
             t = self.peek()
             if t.type == TokenType.QUESTION and applied:
-                break
+                return expr
             if t.type == TokenType.STAR:
                 self.advance()
                 expr = ast.Repeat(expr, "*")
