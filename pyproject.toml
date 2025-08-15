@@ -1,3 +1,6 @@
+[tool.uv.workspace]
+members = ["engine", "api"]
+
 [tool.black]
 line-length = 88
 target-version = ["py311"]
@@ -11,3 +14,8 @@ extend-select = ["I"]
 minversion = "7.0"
 addopts = "-ra -q"
 testpaths = ["engine/tests", "api/tests"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+]
