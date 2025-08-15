@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install all Python packages (workspace + dev dependencies)
 uv sync
 
-# Install frontend dependencies  
+# Install frontend dependencies
 cd web && bun install
 ```
 
@@ -98,7 +98,7 @@ regex-lite-engine = { workspace = true }
 ### Parser Quantifier Handling
 The parser correctly handles lazy quantifiers (`*?`, `+?`, `??`) by allowing `?` after quantifiers to be parsed as separate tokens, enabling proper lazy quantifier support.
 
-### Lexer Error Handling  
+### Lexer Error Handling
 Unknown escape sequences raise `ValueError` immediately rather than warnings, providing strict validation for regex patterns.
 
 ### Testing Strategy
