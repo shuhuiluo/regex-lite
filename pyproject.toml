@@ -18,4 +18,8 @@ testpaths = ["engine/tests", "api/tests"]
 [dependency-groups]
 dev = [
     "httpx>=0.28.1",
+    "pytest",
+    "hypothesis",
+    "ruff",
+    "black",
 ]

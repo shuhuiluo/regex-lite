@@ -26,9 +26,9 @@ def test_grouping():
 
 
 def test_quantifiers_and_literals():
-    tree = parser.parse("a{2,3}b+?")
+    tree = parser.parse("a{2,3}b+c?")
     assert isinstance(tree, ast.Concat)
-    a_rep, b_rep, q = tree.parts
+    a_rep, b_rep, c_rep = tree.parts
     assert (
         isinstance(a_rep, ast.Repeat)
         and a_rep.kind == "{m,n}"
@@ -36,7 +36,7 @@ def test_quantifiers_and_literals():
         and a_rep.n == 3
     )
     assert isinstance(b_rep, ast.Repeat) and b_rep.kind == "+"
-    assert isinstance(q, ast.Literal) and q.char == "?"
+    assert isinstance(c_rep, ast.Repeat) and c_rep.kind == "?"
 
 
 def test_char_class_and_anchors():
