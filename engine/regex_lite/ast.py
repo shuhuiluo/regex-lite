@@ -32,7 +32,7 @@ class AnchorEnd(Expr):
 
 @dataclass
 class Shorthand(Expr):
-    """Shorthand character classes like ``\d`` or ``\w``."""
+    r"""Shorthand character classes like ``\d`` or ``\w``."""
 
     kind: str  # 'd','D','w','W','s','S'
 

@@ -4,7 +4,6 @@ from typing import List
 
 from .tokens import Token, TokenType
 
-
 _HEX_DIGITS = "0123456789abcdefABCDEF"
 _ESCAPABLE = ".*+?|()[]{}^$\\"
 _SHORTHANDS = "dDwWsS"
@@ -145,4 +144,9 @@ class Lexer:
 
 
 def tokenize(pattern: str) -> List[Token]:
+    """Tokenize ``pattern`` using :class:`Lexer`.
+
+    This is a thin convenience wrapper used by the parser and tests.
+    """
+
     return Lexer(pattern).tokenize()

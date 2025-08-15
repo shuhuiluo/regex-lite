@@ -18,6 +18,8 @@ class RegexSyntaxError(Exception):
 
 
 class Parser:
+    """Pratt parser turning token stream into an AST."""
+
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
         self.pos = 0
@@ -239,6 +241,8 @@ class Parser:
 
 
 def parse(pattern: str) -> ast.Expr:
+    """Parse ``pattern`` into an :class:`ast.Expr` tree."""
+
     tokens = tokenize(pattern)
     parser = Parser(tokens)
     return parser.parse()
