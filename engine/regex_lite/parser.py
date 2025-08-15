@@ -45,12 +45,16 @@ class Parser:
 
     # ----------------------------------------------------------- entry point
     def parse(self) -> ast.Expr:
+        """Parse the token stream and return the root AST node."""
+
         expr = self.parse_alt()
         self.expect(TokenType.EOF, "unexpected trailing characters")
         return expr
 
     # ----------------------------------------------------------- grammar
     def parse_alt(self) -> ast.Expr:
+        """Parse alternation ``a|b|c`` (lowest precedence)."""
+
         left = self.parse_concat()
         options = [left]
         while self.match(TokenType.PIPE):
@@ -60,13 +64,19 @@ class Parser:
         return ast.Alt(options)
 
     def parse_concat(self) -> ast.Expr:
+        """Parse an implicit concatenation ``AB`` of one or more expressions."""
+
         parts: List[ast.Expr] = []
         while True:
             t = self.peek()
             if t.type in {TokenType.EOF, TokenType.RPAREN, TokenType.PIPE}:
                 break
             # handle stray '?' after a quantifier (e.g. '+?') as a literal
-            if t.type == TokenType.QUESTION and parts and isinstance(parts[-1], ast.Repeat):
+            if (
+                t.type == TokenType.QUESTION
+                and parts
+                and isinstance(parts[-1], ast.Repeat)
+            ):
                 self.advance()
                 parts.append(ast.Literal("?"))
                 continue
@@ -78,7 +88,14 @@ class Parser:
         return ast.Concat(parts)
 
     def parse_repeat(self) -> ast.Expr:
-        if self.peek().type in {TokenType.STAR, TokenType.PLUS, TokenType.QUESTION, TokenType.LBRACE}:
+        """Parse postfix quantifiers like ``*`` or ``{m,n}``."""
+
+        if self.peek().type in {
+            TokenType.STAR,
+            TokenType.PLUS,
+            TokenType.QUESTION,
+            TokenType.LBRACE,
+        }:
             raise RegexSyntaxError("quantifier without target", self.peek().pos)
         expr = self.parse_primary()
         applied = False
@@ -106,6 +123,8 @@ class Parser:
         return expr
 
     def _parse_number(self) -> int | None:
+        """Read a decimal number from the input, returning ``None`` if absent."""
+
         digits: List[str] = []
         while self.peek().type == TokenType.CHAR and self.peek().value.isdigit():
             digits.append(self.advance().value)
@@ -114,6 +133,8 @@ class Parser:
         return int("".join(digits))
 
     def _parse_brace_quant(self, expr: ast.Expr) -> ast.Expr:
+        """Parse a ``{m}``, ``{m,}`` or ``{m,n}`` quantifier."""
+
         lbrace = self.advance()  # consume '{'
         start_pos = lbrace.pos
         m = self._parse_number()
@@ -133,6 +154,8 @@ class Parser:
         return ast.Repeat(expr, "{m,n}", m, n)
 
     def parse_primary(self) -> ast.Expr:
+        """Parse an atomic expression such as a literal, group, or class."""
+
         t = self.peek()
         if t.type == TokenType.CHAR:
             self.advance()
@@ -161,6 +184,8 @@ class Parser:
         raise RegexSyntaxError("unexpected token", t.pos)
 
     def parse_char_class(self) -> ast.CharClass:
+        """Parse a character class, including ranges and negation."""
+
         self.expect(TokenType.LBRACKET, "expected '['")
         negated = False
         if self.peek().type == TokenType.CARET:
@@ -173,10 +198,15 @@ class Parser:
                 self.advance()
                 break
             item = self._parse_class_atom()
-            if self.peek().type == TokenType.DASH and self.peek(1).type != TokenType.RBRACKET:
+            if (
+                self.peek().type == TokenType.DASH
+                and self.peek(1).type != TokenType.RBRACKET
+            ):
                 self.advance()  # consume '-'
                 end = self._parse_class_atom()
-                if not isinstance(item, ast.Literal) or not isinstance(end, ast.Literal):
+                if not isinstance(item, ast.Literal) or not isinstance(
+                    end, ast.Literal
+                ):
                     raise RegexSyntaxError("invalid range", t.pos)
                 if ord(item.char) > ord(end.char):
                     raise RegexSyntaxError("invalid range", t.pos)
@@ -186,6 +216,8 @@ class Parser:
         return ast.CharClass(items, negated)
 
     def _parse_class_atom(self) -> ast.ClassItem:
+        """Parse a single item within a character class."""
+
         t = self.peek()
         if t.type == TokenType.EOF:
             raise RegexSyntaxError("unterminated character class", t.pos)

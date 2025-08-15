@@ -38,6 +38,14 @@ class Lexer:
 
     # ------------------------------------------------------------------
     def tokenize(self) -> List[Token]:
+        """Tokenize ``pattern`` into a flat list of :class:`Token` objects.
+
+        The lexer keeps track of whether it is currently inside a character
+        class (``[...]``) so that it can interpret characters like ``-`` or
+        ``^`` appropriately.  Aside from escape handling, the lexer performs no
+        validation; errors are reported by the parser.
+        """
+
         tokens: List[Token] = []
         while not self._eof():
             pos = self.i
@@ -81,6 +89,8 @@ class Lexer:
         return TokenType.CHAR, ch
 
     def _lex_regular_char(self, pos: int, ch: str) -> tuple[TokenType, str | None]:
+        """Lex a character outside of a character class."""
+
         self._advance()
         if ch == "\\":
             token, value = self._read_escape(pos + 1, False)
@@ -101,7 +111,7 @@ class Lexer:
             return TokenType.LBRACKET, None
         if ch == "]":
             return TokenType.RBRACKET, None
-        if ch == "{" :
+        if ch == "{":
             return TokenType.LBRACE, None
         if ch == "}":
             return TokenType.RBRACE, None
@@ -119,6 +129,8 @@ class Lexer:
         return TokenType.CHAR, ch
 
     def _lex_class_char(self, pos: int, ch: str) -> tuple[TokenType, str | None]:
+        """Lex a character appearing inside a ``[...]`` character class."""
+
         self._advance()
         if ch == "\\":
             return self._read_escape(pos + 1, True)

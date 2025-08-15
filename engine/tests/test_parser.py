@@ -33,7 +33,12 @@ def test_quantifiers_and_literals():
     tree = parser.parse("a{2,3}b+?")
     assert isinstance(tree, ast.Concat)
     a_rep, b_rep, q = tree.parts
-    assert isinstance(a_rep, ast.Repeat) and a_rep.kind == "{m,n}" and a_rep.m == 2 and a_rep.n == 3
+    assert (
+        isinstance(a_rep, ast.Repeat)
+        and a_rep.kind == "{m,n}"
+        and a_rep.m == 2
+        and a_rep.n == 3
+    )
     assert isinstance(b_rep, ast.Repeat) and b_rep.kind == "+"
     assert isinstance(q, ast.Literal) and q.char == "?"
 
