@@ -228,13 +228,31 @@ class Parser:
         if t.type == TokenType.CARET:
             self.advance()
             return ast.Literal("^")
-        # Any other token inside class is treated as literal of its value
+        # Any other token inside a class is treated as its literal character.
+        mapping = {
+            TokenType.DOT: ".",
+            TokenType.STAR: "*",
+            TokenType.PLUS: "+",
+            TokenType.QUESTION: "?",
+            TokenType.LBRACE: "{",
+            TokenType.RBRACE: "}",
+            TokenType.LPAREN: "(",
+            TokenType.RPAREN: ")",
+            TokenType.LBRACKET: "[",
+            TokenType.RBRACKET: "]",
+            TokenType.PIPE: "|",
+            TokenType.COMMA: ",",
+        }
         self.advance()
-        if t.value is None:
+        if t.value is not None:
+            ch = t.value
+        elif t.type in mapping:
+            ch = mapping[t.type]
+        else:
             raise RegexSyntaxError(
                 "unexpected token with no value in character class", t.pos
             )
-        return ast.Literal(t.value)
+        return ast.Literal(ch)
 
 
 def parse(pattern: str) -> ast.Expr:

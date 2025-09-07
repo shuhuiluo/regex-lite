@@ -2,13 +2,13 @@
 
 * [ ] **Define subset & flags** (readme spec): literals, `. [] ^ $ () | * + ? {m,n}`, escapes, ranges; flags `i/m/s/g`;
   anchors `^/$`.
-* [ ] **Tokens** (`tokens.py`): metachars, escapes (inside/outside `[]`), `\t \n \r \xHH`, shorthands as
+* [x] **Tokens** (`tokens.py`): metachars, escapes (inside/outside `[]`), `\t \n \r \xHH`, shorthands as
   `Shorthand('d'|'w'|'s'|…)`.
-* [ ] **Lexer** (`lexer.py`): one-pass with positions; class rules (negation if first `^`, ranges with `-`, literal `-`
+* [x] **Lexer** (`lexer.py`): one-pass with positions; class rules (negation if first `^`, ranges with `-`, literal `-`
   and `]` handling).
-* [ ] **AST dataclasses** (`ast.py`):
+* [x] **AST dataclasses** (`ast.py`):
   `Literal, Dot, AnchorStart, AnchorEnd, CharClass, Range, Group(index), Concat, Alt, Repeat, Shorthand`.
-* [ ] **Parser** (`parser.py`): Pratt or shunting-yard; implicit concatenation; group numbering; quantifier validation (
+* [x] **Parser** (`parser.py`): Pratt or shunting-yard; implicit concatenation; group numbering; quantifier validation (
   `{m}`, `{m,}`, `{m,n}` with `m≤n`); precise error types.
 * [ ] **Thompson compiler** (`compiler.py`): per-node builders
 
@@ -28,8 +28,8 @@
 
 * [ ] **Unit (engine)**
 
-    * [ ] Lexer: escapes, ranges, `[]` edge cases
-    * [ ] Parser: precedence (`a|bc*`), grouping, quantifiers, anchors
+    * [x] Lexer: escapes, ranges, `[]` edge cases
+    * [x] Parser: precedence (`a|bc*`), grouping, quantifiers, anchors
     * [ ] Compiler/Matcher: literals/dot/classes/alt/concat/repeat, flags, anchors, captures
 * [ ] **Property tests** (Hypothesis): random small patterns/inputs vs Python `re` where semantics overlap
 * [ ] **Golden tests**: curated patterns → expected spans/captures; replace/split outputs
