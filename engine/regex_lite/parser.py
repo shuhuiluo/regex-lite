@@ -75,7 +75,7 @@ class Parser:
                 break
             parts.append(self.parse_repeat())
         if not parts:
-            raise RegexSyntaxError("expected expression", self.peek().pos)
+            return ast.Empty()
         if len(parts) == 1:
             return parts[0]
         return ast.Concat(parts)
@@ -91,28 +91,26 @@ class Parser:
         }:
             raise RegexSyntaxError("quantifier without target", self.peek().pos)
         expr = self.parse_primary()
-        applied = False
-        while True:
-            t = self.peek()
-            if t.type == TokenType.QUESTION and applied:
-                return expr
-            if t.type == TokenType.STAR:
-                self.advance()
-                expr = ast.Repeat(expr, "*")
-                applied = True
-            elif t.type == TokenType.PLUS:
-                self.advance()
-                expr = ast.Repeat(expr, "+")
-                applied = True
-            elif t.type == TokenType.QUESTION:
-                self.advance()
-                expr = ast.Repeat(expr, "?")
-                applied = True
-            elif t.type == TokenType.LBRACE:
-                expr = self._parse_brace_quant(expr)
-                applied = True
-            else:
-                break
+        t = self.peek()
+        if t.type == TokenType.STAR:
+            self.advance()
+            expr = ast.Repeat(expr, "*")
+            if self.match(TokenType.QUESTION):
+                expr.lazy = True
+        elif t.type == TokenType.PLUS:
+            self.advance()
+            expr = ast.Repeat(expr, "+")
+            if self.match(TokenType.QUESTION):
+                expr.lazy = True
+        elif t.type == TokenType.QUESTION:
+            self.advance()
+            expr = ast.Repeat(expr, "?")
+            if self.match(TokenType.QUESTION):
+                expr.lazy = True
+        elif t.type == TokenType.LBRACE:
+            expr = self._parse_brace_quant(expr)
+            if self.match(TokenType.QUESTION):
+                expr.lazy = True
         return expr
 
     def _parse_number(self) -> int | None:

@@ -9,6 +9,11 @@ class Expr:
 
 
 @dataclass
+class Empty(Expr):
+    """Matches the empty string."""
+
+
+@dataclass
 class Literal(Expr):
     """Single literal character, e.g. ``a`` in ``a+``."""
 
@@ -86,3 +91,4 @@ class Repeat(Expr):
     kind: str  # '*', '+', '?', '{m}', '{m,}', '{m,n}'
     m: int | None = None
     n: int | None = None
+    lazy: bool = False

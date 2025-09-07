@@ -2,6 +2,31 @@ import pytest
 from regex_lite import ast, parser
 
 
+def test_empty_pattern():
+    tree = parser.parse("")
+    assert isinstance(tree, ast.Empty)
+
+
+def test_literal_and_concat():
+    assert isinstance(parser.parse("a"), ast.Literal)
+    tree = parser.parse("ab")
+    assert isinstance(tree, ast.Concat)
+    assert [p.char for p in tree.parts] == ["a", "b"]
+
+
+def test_simple_alternation():
+    tree = parser.parse("a|b")
+    assert isinstance(tree, ast.Alt)
+    assert all(isinstance(opt, ast.Literal) for opt in tree.options)
+
+
+def test_empty_group():
+    tree = parser.parse("()")
+    assert isinstance(tree, ast.Group)
+    assert isinstance(tree.expr, ast.Empty)
+    assert tree.index == 1
+
+
 def test_precedence():
     tree = parser.parse("a|bc*")
     assert isinstance(tree, ast.Alt)
@@ -37,6 +62,22 @@ def test_quantifiers_and_literals():
     )
     assert isinstance(b_rep, ast.Repeat) and b_rep.kind == "+"
     assert isinstance(c_rep, ast.Repeat) and c_rep.kind == "?"
+
+
+def test_lazy_quantifiers():
+    tree = parser.parse("a*?b+?c??d{2,3}?")
+    assert isinstance(tree, ast.Concat)
+    a_rep, b_rep, c_rep, d_rep = tree.parts
+    assert isinstance(a_rep, ast.Repeat) and a_rep.kind == "*" and a_rep.lazy
+    assert isinstance(b_rep, ast.Repeat) and b_rep.kind == "+" and b_rep.lazy
+    assert isinstance(c_rep, ast.Repeat) and c_rep.kind == "?" and c_rep.lazy
+    assert (
+        isinstance(d_rep, ast.Repeat)
+        and d_rep.kind == "{m,n}"
+        and d_rep.m == 2
+        and d_rep.n == 3
+        and d_rep.lazy
+    )
 
 
 def test_char_class_and_anchors():
