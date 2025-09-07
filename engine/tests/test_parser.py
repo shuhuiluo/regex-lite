@@ -50,6 +50,17 @@ def test_grouping():
     assert isinstance(d, ast.Literal) and d.char == "d"
 
 
+def test_nested_group_numbering():
+    tree = parser.parse("(a(b)c)")
+    assert isinstance(tree, ast.Group) and tree.index == 1
+    assert isinstance(tree.expr, ast.Concat)
+    a, inner, c = tree.expr.parts
+    assert isinstance(a, ast.Literal) and a.char == "a"
+    assert isinstance(inner, ast.Group) and inner.index == 2
+    assert isinstance(inner.expr, ast.Literal) and inner.expr.char == "b"
+    assert isinstance(c, ast.Literal) and c.char == "c"
+
+
 def test_quantifiers_and_literals():
     tree = parser.parse("a{2,3}b+c?")
     assert isinstance(tree, ast.Concat)
@@ -95,6 +106,19 @@ def test_char_class_and_anchors():
     assert isinstance(tree.parts[1], ast.Repeat)
     assert isinstance(tree.parts[1].expr, ast.Shorthand)
     assert isinstance(tree.parts[-1], ast.AnchorEnd)
+
+
+def test_char_class_punctuation_literals():
+    tree = parser.parse("[.*+?(){}|]")
+    assert isinstance(tree, ast.CharClass)
+    assert [item.char for item in tree.items] == list(".*+?(){}|")
+
+
+def test_char_class_errors():
+    with pytest.raises(parser.RegexSyntaxError):
+        parser.parse("[z-a]")
+    with pytest.raises(parser.RegexSyntaxError):
+        parser.parse("[abc")
 
 
 def test_errors():
