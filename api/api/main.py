@@ -31,10 +31,10 @@ def create_app() -> FastAPI:
     @app.post("/regex/match", response_model=MatchResponse)
     def regex_match(req: MatchRequest) -> MatchResponse:
         try:
-            matches = engine.match(req.pattern, req.flags, req.text)
+            spans = engine.match(req.pattern, req.flags, req.text)
         except NotImplementedError as exc:
             raise HTTPException(status_code=501, detail=str(exc))
-        return MatchResponse(matches=matches)
+        return MatchResponse(matches=[{"start": s, "end": e} for (s, e) in spans])
 
     @app.post("/regex/replace", response_model=ReplaceResponse)
     def regex_replace(req: ReplaceRequest) -> ReplaceResponse:
