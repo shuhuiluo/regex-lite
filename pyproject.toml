@@ -22,4 +22,5 @@ dev = [
     "hypothesis",
     "ruff",
     "black",
+    "pre-commit",
 ]
