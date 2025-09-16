@@ -20,16 +20,16 @@ class NFA:
     accepts: Set[int]
 
 
-def _new_state(states: List[State], accept=False) -> int:
+def _new_state(states: List[State], accept: bool = False) -> int:
     states.append(State(accept=accept))
     return len(states) - 1
 
 
-def _link_char(states: List[State], src: int, ch: str, dst: int):
+def _link_char(states: List[State], src: int, ch: str, dst: int) -> None:
     states[src].edges.setdefault(ch, []).append(dst)
 
 
-def _link_eps(states: List[State], src: int, dst: int):
+def _link_eps(states: List[State], src: int, dst: int) -> None:
     states[src].eps.append(dst)
 
 
@@ -39,11 +39,13 @@ def _build(node: ast.Expr, states: List[State]) -> Tuple[int, int]:
         a = _new_state(states, True)
         _link_eps(states, s, a)
         return s, a
+
     if isinstance(node, ast.Literal):
         s = _new_state(states)
         a = _new_state(states, True)
         _link_char(states, s, node.char, a)
         return s, a
+
     if isinstance(node, ast.Concat):
         assert node.parts, "empty concat"
         s1, a1 = _build(node.parts[0], states)
@@ -60,10 +62,9 @@ def _build(node: ast.Expr, states: List[State]) -> Tuple[int, int]:
     raise NotImplementedError(f"node not yet supported: {type(node).__name__}")
 
 
-def compile(ast_tree: ast.Node) -> NFA:
+def compile(ast_tree: ast.Expr) -> NFA:
     """Compile AST into internal NFA representation."""
     states: List[State] = []
     start, accept = _build(ast_tree, states)
     accepts = {i for i, s in enumerate(states) if s.accept}
     return NFA(states=states, start=start, accepts=accepts)
-    # raise NotImplementedError("Compiler not implemented")
