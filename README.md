@@ -101,6 +101,10 @@ uv run black .
 uv run ruff check .
 uv run ruff check . --fix
 
+# Pre-commit hooks (automatic code quality checks)
+uv run pre-commit install  # One-time setup
+uv run pre-commit run --all-files  # Run manually on all files
+
 # Add workspace dependencies
 uv add <package>
 uv add --dev <package>

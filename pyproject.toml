@@ -8,6 +8,8 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+
+[tool.ruff.lint]
 extend-select = ["I"]
 
 [tool.pytest.ini_options]
@@ -22,4 +24,5 @@ dev = [
     "hypothesis",
     "ruff",
     "black",
+    "pre-commit",
 ]
