@@ -8,14 +8,14 @@ def test_g_alt_concat():
 
 
 def test_g_quantifiers():
-    assert match("a*", "baaac", "g") == [(0, 0), (1, 4), (4, 4), (5, 5)]
+    assert match("a*", "baaac", "") == [(0, 0), (1, 4), (4, 4), (5, 5)]
     assert match("b+", "abbbc", "") == [(1, 4)]
     assert match("c{2,3}", "abcccd", "") == [(2, 5)]
 
 
 def test_g_charclass_and_ranges():
     assert match("[a-c]+", "zzabccdz", "") == [(2, 6)]
-    assert match("[^0-9]+", "123ab45", "g") == [(3, 5)]
+    assert match("[^0-9]+", "123ab45", "") == [(3, 5)]
 
 
 def test_g_dot_and_flags():

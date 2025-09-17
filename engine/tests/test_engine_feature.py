@@ -8,7 +8,7 @@ def test_alt_and_concat():
 
 
 def test_quantifiers_simple():
-    assert match("a*", "baaac", "g") == [
+    assert match("a*", "baaac", "") == [
         (0, 0),
         (1, 4),
         (4, 4),

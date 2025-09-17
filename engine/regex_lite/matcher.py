@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from typing import List, Set
+from typing import TYPE_CHECKING, List, Set
 
 from . import parser
-from .compiler import Edge, State
 from .compiler import compile as compile_nfa
+
+if TYPE_CHECKING:
+    from .compiler import Edge, State
 
 
 def _is_word(ch: str) -> bool:
@@ -42,7 +44,13 @@ def _match_edge(e: Edge, ch: str, flags: str) -> bool:
     if e.kind == "class":
         negated, lits, ranges = e.data
         c = ch_cmp
-        hit = (c in lits) or any(r[0] <= c <= r[1] for r in ranges)
+        if "i" in flags:
+            lits_cmp = {t.lower() for t in lits}
+            ranges_cmp = [(a.lower(), b.lower()) for (a, b) in ranges]
+        else:
+            lits_cmp = lits
+            ranges_cmp = ranges
+        hit = (c in lits_cmp) or any(a <= c <= b for (a, b) in ranges_cmp)
         return (not hit) if negated else hit
 
     return False
@@ -57,6 +65,48 @@ def _eps_closure(states: List[State], S: Set[int]) -> Set[int]:
             if v not in seen:
                 seen.add(v)
                 stack.append(v)
+    return seen
+
+
+def _eps_closure_at(
+    states: List["State"], S: Set[int], pos: int, text: str, flags: str
+) -> Set[int]:
+    """
+    +    Position-aware ε-closure that respects ^/$ anchors on the fly.
+    +    Assume State has fields: eps (list[int]), bol (bool), eol (bool).
+    +"""
+    stack = list(S)
+    seen: Set[int] = set()
+    multiline = "m" in flags
+    n = len(text)
+
+    def at_bol(p: int) -> bool:
+        if p == 0:
+            return True
+        if multiline and p > 0:
+            return text[p - 1] == "\n"
+        return False
+
+    def at_eol(p: int) -> bool:
+        if p == n:
+            return True
+        if multiline and p < n:
+            return text[p] == "\n"
+        return False
+
+    while stack:
+        u = stack.pop()
+        st = states[u]
+        # enforce anchors on this node, if present
+        if getattr(st, "bol", False) and not at_bol(pos):
+            continue
+        if getattr(st, "eol", False) and not at_eol(pos):
+            continue
+        if u in seen:
+            continue
+        seen.add(u)
+        for v in st.eps:
+            stack.append(v)
     return seen
 
 
