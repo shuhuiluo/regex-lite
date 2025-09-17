@@ -1,4 +1,5 @@
-from regex_lite.matcher import match, match_with_groups
+from regex_lite.matcher import match_spans as match
+from regex_lite.matcher import match_with_groups
 
 
 def test_g_alt_concat():

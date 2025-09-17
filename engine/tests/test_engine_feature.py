@@ -1,5 +1,5 @@
 # engine/tests/test_engine_features.py
-from regex_lite.matcher import match
+from regex_lite.matcher import match_spans as match
 
 
 def test_alt_and_concat():
