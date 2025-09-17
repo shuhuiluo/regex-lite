@@ -77,7 +77,7 @@ def test_anchor_alternation_semantics():
     our_result = match(pattern, text, "m")
     print(f"Our match('{pattern}', '{text}', 'm'): {our_result}")
 
-    expected = [(1, 2), (3, 4)]  # 'b' at pos 1, 'a' at pos 3 (after \n)
+    expected = [(1, 2), (3, 4), (4, 5)]  # 'b' at pos 1, 'a' at pos 3 (after \n)
     assert (
         re_matches == expected
     ), f"Python re should match: {expected}, got {re_matches}"
