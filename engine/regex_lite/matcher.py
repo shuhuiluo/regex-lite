@@ -149,3 +149,96 @@ def match(pattern: str, text: str, flags: str = "") -> list[tuple[int, int]]:
             i += 1
 
     return res
+
+
+def match_with_groups(pattern: str, text: str, flags: str = "") -> list[dict]:
+    """
+    Return a list of dictionaries like:
+    [
+      {"span": (start, end), "groups": [(g1_start, g1_end) | None, (g2_start, g2_end) | None, ...]},
+      ...
+    ]
+    Group indices follow the order of parentheses ( ... ), starting from 1.
+    If a group does not match, its entry will be None.
+    """
+    tree = parser.parse(pattern)
+    nfa = compile_nfa(tree)
+    results: list[dict] = []
+
+    i = 0
+    while i <= len(text):
+        # Starting state ε-closure
+        S0 = _eps_closure(nfa.states, {nfa.start})
+
+        # Start-anchor (^) check at current position
+        if not _ok_bol(nfa.states, S0, i, text, flags):
+            i += 1
+            continue
+
+        # --- Capture group tracking (reused within this iteration for current i) ---
+        group_starts: dict[int, int] = {}
+        group_spans: dict[int, tuple[int, int]] = {}
+
+        def _apply_group_hooks(state_set: set[int], pos: int):
+            # Record group start/end based on enter/exit hooks
+            for s in state_set:
+                st = nfa.states[s]
+                # Entering a group: record its start position
+                for g in st.enter_groups:
+                    group_starts[g] = pos
+                # Exiting a group: if we have a start, record the span
+                for g in st.exit_groups:
+                    start = group_starts.get(g)
+                    if start is not None:
+                        group_spans[g] = (start, pos)
+
+        # Greedy search: record the longest accepted j and its groups
+        S = set(S0)
+        j = i
+        best_j: int | None = None
+        best_groups: dict[int, tuple[int, int]] | None = None
+
+        # Apply group hooks on initial ε-closure
+        Sc = _eps_closure(nfa.states, S)
+        _apply_group_hooks(Sc, j)
+
+        # Acceptable at start (empty match / pure anchors)
+        if any(nfa.states[s].accept for s in Sc) and _ok_eol(
+            nfa.states, Sc, j, text, flags
+        ):
+            best_j = j
+            best_groups = dict(group_spans)
+
+        # Consume characters to find the longest match
+        while j < len(text):
+            Sc = _eps_closure(nfa.states, S)
+            S = _step(nfa.states, Sc, text[j], flags)
+            if not S:
+                break
+            j += 1
+            Sc2 = _eps_closure(nfa.states, S)
+            _apply_group_hooks(Sc2, j)
+            if any(nfa.states[s].accept for s in Sc2) and _ok_eol(
+                nfa.states, Sc2, j, text, flags
+            ):
+                best_j = j
+                best_groups = dict(group_spans)
+
+        if best_j is not None:
+            # Normalize groups: fill from 1..max_index, use None for missing groups
+            max_idx = max(best_groups.keys(), default=0) if best_groups else 0
+            ordered_groups = [None] * max_idx
+            if best_groups:
+                for k, span in best_groups.items():
+                    if k >= 1:
+                        # Expand defensively if needed (rare)
+                        if k > len(ordered_groups):
+                            ordered_groups.extend([None] * (k - len(ordered_groups)))
+                        ordered_groups[k - 1] = span
+            results.append({"span": (i, best_j), "groups": ordered_groups})
+            # Avoid infinite loop on zero-length matches
+            i = best_j if best_j > i else i + 1
+        else:
+            i += 1
+
+    return results
