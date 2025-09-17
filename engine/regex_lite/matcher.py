@@ -161,9 +161,9 @@ def match(pattern: str, text: str, flags: str = "") -> list[dict]:
         S0 = _eps_closure(nfa.states, {nfa.start})
 
         # Check start-anchor (^) at current position
-        if not _ok_bol(nfa.states, S0, i, text, flags):
-            i += 1
-            continue
+        #if not _ok_bol(nfa.states, S0, i, text, flags):
+        #    i += 1
+        #    continue
 
         # Greedy search: record the longest accepted j
         S = set(S0)
