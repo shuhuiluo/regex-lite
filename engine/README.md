@@ -1,6 +1,6 @@
 # Engine Checklist
 
-* [ ] **Define subset & flags** (readme spec): literals, `. [] ^ $ () | * + ? {m,n}`, escapes, ranges; flags `i/m/s/g`;
+* [x] **Define subset & flags** (readme spec): literals, `. [] ^ $ () | * + ? {m,n}`, escapes, ranges; flags `i/m/s/g`;
   anchors `^/$`.
 * [x] **Tokens** (`tokens.py`): metachars, escapes (inside/outside `[]`), `\t \n \r \xHH`, shorthands as
   `Shorthand('d'|'w'|'s'|…)`.
@@ -10,26 +10,54 @@
   `Literal, Dot, AnchorStart, AnchorEnd, CharClass, Range, Group(index), Concat, Alt, Repeat, Shorthand`.
 * [x] **Parser** (`parser.py`): Pratt or shunting-yard; implicit concatenation; group numbering; quantifier validation (
   `{m}`, `{m,}`, `{m,n}` with `m≤n`); precise error types.
-* [ ] **Thompson compiler** (`compiler.py`): per-node builders
+* [x] **Thompson compiler** (`compiler.py`): per-node builders
 
-    * [ ] `Literal`, `Dot` (respect `s` flag), `Shorthand` (defer to char sets)
-    * [ ] `CharClass` (negated & ranges), `Concat`, `Alt`, `Repeat(* + ? {m,n})`
-    * [ ] `Group` capture entry/exit hooks (indexing)
-    * [ ] Anchors `^/$` as start/end constraints
-* [ ] **Matcher** (`matcher.py`): ε-closure NFA simulation
+    * [x] `Literal`, `Dot` (respect `s` flag), `Shorthand` (defer to char sets)
+    * [x] `CharClass` (negated & ranges), `Concat`, `Alt`, `Repeat(* + ? {m,n})`
+    * [x] `Group` capture entry/exit hooks (indexing)
+    * [x] Anchors `^/$` as start/end constraints
+* [x] **Matcher** (`matcher.py`): ε-closure NFA simulation
 
-    * [ ] Case-folding for `i`, line vs. string semantics for `m`, dotall for `s`
-    * [ ] First vs. global (`g`) search; leftmost-longest greedy behavior
-    * [ ] Capture spans for numbered groups
+    * [x] Case-folding for `i`, line vs. string semantics for `m`, dotall for `s`
+    * [x] First vs. global (`g`) search; leftmost-longest greedy behavior
+    * [x] Capture spans for numbered groups
 * [ ] **Replace / Split semantics**: `$1…` back-refs; count; split with `limit` (optional)
-* [ ] **Performance sanity**: typical pattern compiles <150ms; match small texts <5–10ms; simple micro-bench script
+* [x] **Performance sanity**: typical pattern compiles <150ms; match small texts <5–10ms; simple micro-bench script
 
 # Testing
 
-* [ ] **Unit (engine)**
+* [x] **Unit (engine)**
 
     * [x] Lexer: escapes, ranges, `[]` edge cases
     * [x] Parser: precedence (`a|bc*`), grouping, quantifiers, anchors
-    * [ ] Compiler/Matcher: literals/dot/classes/alt/concat/repeat, flags, anchors, captures
-* [ ] **Property tests** (Hypothesis): random small patterns/inputs vs Python `re` where semantics overlap
-* [ ] **Golden tests**: curated patterns → expected spans/captures; replace/split outputs
+    * [x] Compiler/Matcher: literals/dot/classes/alt/concat/repeat, flags, anchors, captures
+* [x] **Property tests** (Hypothesis): random small patterns/inputs vs Python `re` where semantics overlap
+* [x] **Golden tests**: curated patterns → expected spans/captures; replace/split outputs
+
+      
+# Supported Syntax
+
+| **Feature**            | **Syntax**     | **Description**                                                           | **Example**         | **Matches** |          |
+| ---------------------- | -------------- | ------------------------------------------------------------------------- | ------------------- | ----------- | -------- |
+| **Literal characters** | `abc`          | Matches characters literally                                              | `abc` on `xxabcxx`  | `abc`       |          |
+| **Any character**      | `.`            | Matches any character except newline (or including newline with `s` flag) | `a.c` on `axc`      | `axc`       |          |
+| **Character classes**  | `[abc]`        | Matches one character from the set                                        | `[abc]` on `xay`    | `a`         |          |
+| **Character ranges**   | `[a-z]`        | Matches one character from the range                                      | `[a-c]` on `zab`    | `a`, `b`    |          |
+| **Negated classes**    | `[^abc]`       | Matches one character *not* in the set                                    | `[^a]` on `bat`     | `b`, `t`    |          |
+| **Anchors**            | `^` / `$`      | Match start / end of string (or line with `m` flag)                       | `^ab` on `abxx`     | `ab`        |          |
+| **Grouping**           | `( ... )`      | Groups sub-expressions (capturing supported in future)                    | `(ab)+` on `ababx`  | `abab`      |          |
+| **Alternation**        | `a\|b`         | Matches left or right branch                                              | \`a                 | b`on`bab\`  | `b`, `b` |
+| **Quantifiers**        | `* + ? {m,n}`  | Repetition: 0+ / 1+ / 0-1 / range                                         | `a{2,3}` on `caaad` | `aaa`       |          |
+| **Escapes**            | `\d \w \s`     | Shorthand classes (digit/word/space)                                      | `\d+` on `ab123c`   | `123`       |          |
+| **Escaped literals**   | `\.` `\+` etc. | Treat metacharacter as literal                                            | `a\.b` on `a.b`     | `a.b`       |          |
+
+#Supoorted Flags
+
+| **Flag** | **Name**    | **Effect**                                                        |
+| -------- | ----------- | ----------------------------------------------------------------- |
+| `i`      | Ignore Case | Case-insensitive matching (`A` = `a`)                             |
+| `m`      | Multiline   | `^` and `$` match at line boundaries                              |
+| `s`      | Dotall      | `.` matches `\n` as well                                          |
+| `g`      | Global      | (default in this engine) return all matches instead of first only |
+
+
