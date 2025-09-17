@@ -27,10 +27,11 @@ def test_match(client):
     cli, use_mock = client
     resp = cli.post(
         "/regex/match",
-        json={"pattern": "\\d+", "text": "abc 123 xyz", "flags": ""},
+        json={"pattern": r"\d+", "text": "abc 123 xyz", "flags": ""},
     )
     assert resp.status_code == 200
     data = resp.json()
+    assert len(data["matches"]) == 1
     assert data["matches"][0]["span"] == [4, 7]
 
 
@@ -39,7 +40,7 @@ def test_replace(client):
     resp = cli.post(
         "/regex/replace",
         json={
-            "pattern": "\\d+",
+            "pattern": r"\d+",
             "text": "abc 123 xyz",
             "flags": "",
             "repl": "#",
@@ -55,6 +56,17 @@ def test_split(client):
     resp = cli.post(
         "/regex/split",
         json={"pattern": " ", "text": "a b c", "flags": ""},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["pieces"] == ["a", "b", "c"]
+
+
+def test_split_multiple_spaces(client):
+    cli, use_mock = client
+    resp = cli.post(
+        "/regex/split",
+        json={"pattern": r"\s+", "text": "a  b   c", "flags": ""},
     )
     assert resp.status_code == 200
     data = resp.json()
