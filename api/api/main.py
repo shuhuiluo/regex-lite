@@ -31,7 +31,7 @@ def create_app() -> FastAPI:
     @app.post("/regex/match", response_model=MatchResponse)
     def regex_match(req: MatchRequest) -> MatchResponse:
         try:
-            matches = engine.match(req.pattern, req.text, req.flags)
+            matches = engine.match(req.pattern, req.flags, req.text)
         except NotImplementedError as exc:
             raise HTTPException(status_code=501, detail=str(exc))
         return MatchResponse(matches=matches)
