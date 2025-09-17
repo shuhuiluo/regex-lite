@@ -98,9 +98,10 @@ def _eps_closure_at(
         u = stack.pop()
         st = states[u]
         # enforce anchors on this node, if present
-        if getattr(st, "bol", False) and not at_bol(pos):
+        # enforce anchors on this node, if present
+        if getattr(st, "require_bol", False) and not at_bol(pos):
             continue
-        if getattr(st, "eol", False) and not at_eol(pos):
+        if getattr(st, "require_eol", False) and not at_eol(pos):
             continue
         if u in seen:
             continue
@@ -150,7 +151,7 @@ def _ok_eol(
     return True
 
 
-def match(pattern: str, text: str, flags: str = "") -> list[dict]:
+def match(pattern: str, text: str, flags: str = "") -> list[tuple[int, int]]:
     tree = parser.parse(pattern)
     nfa = compile_nfa(tree)
     res: list[tuple[int, int]] = []
@@ -158,8 +159,8 @@ def match(pattern: str, text: str, flags: str = "") -> list[dict]:
     i = 0
     while i <= len(text):
         # ε-closure of the start state
-        S0 = _eps_closure(nfa.states, {nfa.start})
-
+        # S0 = _eps_closure(nfa.states, {nfa.start})
+        S0 = _eps_closure_at(nfa.states, {nfa.start}, i, text, flags)
         # Check start-anchor (^) at current position
         # if not _ok_bol(nfa.states, S0, i, text, flags):
         #    i += 1
@@ -171,7 +172,8 @@ def match(pattern: str, text: str, flags: str = "") -> list[dict]:
         best_j = None
 
         # Acceptable from the start (empty match / pure anchor)
-        Sc = _eps_closure(nfa.states, S)
+        # Sc = _eps_closure(nfa.states, S)
+        Sc = _eps_closure_at(nfa.states, S, j, text, flags)
         if any(nfa.states[s].accept for s in Sc) and _ok_eol(
             nfa.states, Sc, j, text, flags
         ):
@@ -179,12 +181,12 @@ def match(pattern: str, text: str, flags: str = "") -> list[dict]:
 
         # Consume characters to find the longest match
         while j < len(text):
-            Sc = _eps_closure(nfa.states, S)
+            Sc = _eps_closure_at(nfa.states, S, j, text, flags)
             S = _step(nfa.states, Sc, text[j], flags)
             if not S:
                 break
             j += 1
-            Sc2 = _eps_closure(nfa.states, S)
+            Sc2 = _eps_closure_at(nfa.states, S, j, text, flags)
             if any(nfa.states[s].accept for s in Sc2) and _ok_eol(
                 nfa.states, Sc2, j, text, flags
             ):
@@ -198,7 +200,8 @@ def match(pattern: str, text: str, flags: str = "") -> list[dict]:
         else:
             i += 1
 
-    return match_with_groups(pattern, text, flags)
+    # return match_with_groups(pattern, text, flags)
+    return res
 
 
 def match_with_groups(pattern: str, text: str, flags: str = "") -> list[dict]:
@@ -221,9 +224,9 @@ def match_with_groups(pattern: str, text: str, flags: str = "") -> list[dict]:
         S0 = _eps_closure(nfa.states, {nfa.start})
 
         # Start-anchor (^) check at current position
-        if not _ok_bol(nfa.states, S0, i, text, flags):
-            i += 1
-            continue
+        # if not _ok_bol(nfa.states, S0, i, text, flags):
+        #    i += 1
+        #    continue
 
         # --- Capture group tracking (reused within this iteration for current i) ---
         group_starts: dict[int, int] = {}
@@ -305,9 +308,9 @@ def match_spans(pattern: str, text: str, flags: str = "") -> list[dict]:
         S0 = _eps_closure(nfa.states, {nfa.start})
 
         # Check start-anchor (^) at current position
-        if not _ok_bol(nfa.states, S0, i, text, flags):
-            i += 1
-            continue
+        # if not _ok_bol(nfa.states, S0, i, text, flags):
+        #    i += 1
+        #    continue
 
         # Greedy search: record the longest accepted j
         S = set(S0)
