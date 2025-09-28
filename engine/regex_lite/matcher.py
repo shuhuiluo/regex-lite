@@ -129,7 +129,7 @@ def _ok_eol(
 
 
 # ---------------------------------------------------------------------------
-# Public: return only spans (for engine unit tests, keep original signature)
+# Public: return only spans (legacy helper for engine unit tests)
 # ---------------------------------------------------------------------------
 def match(pattern: str, text: str, flags: str = "") -> list[tuple[int, int]]:
     tree = parser.parse(pattern)
@@ -248,46 +248,7 @@ def match_with_groups(pattern: str, text: str, flags: str = "") -> list[dict]:
     return out
 
 
-def match_spans(pattern: str, text: str, flags: str = "") -> list[dict]:
-    tree = parser.parse(pattern)
-    nfa = compile_nfa(tree)
-    res: list[tuple[int, int]] = []
+def match_spans(pattern: str, text: str, flags: str = "") -> list[tuple[int, int]]:
+    """Return only the match spans; thin wrapper over :func:`match`."""
 
-    i = 0
-    while i <= len(text):
-        # ε-closure of the start state
-        S0 = _eps_closure(nfa.states, {nfa.start})
-
-        # Greedy search: record the longest accepted j
-        S = set(S0)
-        j = i
-        best_j = None
-
-        # Acceptable from the start (empty match / pure anchor)
-        Sc = _eps_closure(nfa.states, S)
-        if any(nfa.states[s].accept for s in Sc) and _ok_eol(
-            nfa.states, Sc, j, text, flags
-        ):
-            best_j = j
-
-        # Consume characters to find the longest match
-        while j < len(text):
-            Sc = _eps_closure(nfa.states, S)
-            S = _step(nfa.states, Sc, text[j], flags)
-            if not S:
-                break
-            j += 1
-            Sc2 = _eps_closure(nfa.states, S)
-            if any(nfa.states[s].accept for s in Sc2) and _ok_eol(
-                nfa.states, Sc2, j, text, flags
-            ):
-                best_j = j
-
-        if best_j is not None:
-            res.append((i, best_j))
-            # Avoid zero-length infinite loop: advance at least 1 char
-            i = best_j if best_j > i else i + 1
-        else:
-            i += 1
-
-    return [m["span"] for m in match_with_groups(pattern, text, flags)]
+    return match(pattern, text, flags)

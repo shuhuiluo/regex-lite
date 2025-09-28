@@ -1,6 +1,6 @@
 # Engine Checklist
 
-* [ ] **Define subset & flags** (readme spec): literals, `. [] ^ $ () | * + ? {m,n}`, escapes, ranges; flags `i/m/s/g`;
+* [ ] **Define subset & flags** (readme spec): literals, `. [] ^ $ () | * + ? {m,n}`, escapes, ranges; flags `i/m/s`;
   anchors `^/$`.
 * [x] **Tokens** (`tokens.py`): metachars, escapes (inside/outside `[]`), `\t \n \r \xHH`, shorthands as
   `Shorthand('d'|'w'|'s'|…)`.
@@ -19,7 +19,7 @@
 * [ ] **Matcher** (`matcher.py`): ε-closure NFA simulation
 
     * [ ] Case-folding for `i`, line vs. string semantics for `m`, dotall for `s`
-    * [ ] First vs. global (`g`) search; leftmost-longest greedy behavior
+    * [ ] Leftmost-longest greedy behavior
     * [ ] Capture spans for numbered groups
 * [ ] **Replace / Split semantics**: `$1…` back-refs; count; split with `limit` (optional)
 * [ ] **Performance sanity**: typical pattern compiles <150ms; match small texts <5–10ms; simple micro-bench script
