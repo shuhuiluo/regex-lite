@@ -229,8 +229,7 @@ def _repeat_range(
             _mark_accept(states, a, False)
 
             # Create new accept for this optional iteration
-            new_a = _new_state(states, True)
-            _mark_accept(states, new_a, False)
+            new_a = _new_state(states)
 
             # Option: skip to new_a
             _add_eps(states, cur_a, new_a)
@@ -248,8 +247,7 @@ def _repeat_range(
     s, a = _clone_fragment(states, base)
     _mark_accept(states, a, False)
 
-    loop_state = _new_state(states, True)
-    _mark_accept(states, loop_state, False)
+    loop_state = _new_state(states)
 
     # From current position to loop entry
     _add_eps(states, cur_a, loop_state)
