@@ -37,6 +37,13 @@ class NFA:
     accepts: Set[int]
 
 
+def compile(tree: ast.Node) -> NFA:
+    states: List[State] = []
+    start, _ = _build(tree, states)
+    accepts = {i for i, st in enumerate(states) if st.accept}
+    return NFA(states=states, start=start, accepts=accepts)
+
+
 def _new_state(states: List[State], accept: bool = False) -> int:
     states.append(State(accept=accept))
     return len(states) - 1
@@ -132,6 +139,67 @@ def _frag_alt(
     return s, a
 
 
+def _clone_fragment(states: List[State], base: Tuple[int, int]) -> Tuple[int, int]:
+    """
+    Creates a fresh copy of a fragment by cloning all states reachable from base.
+    Returns a new (start, accept) pair with completely new state indices.
+    """
+    start_old, accept_old = base
+
+    # Map old state indices to new state indices
+    state_map = {}
+
+    # Collect all reachable states from the fragment via DFS
+    reachable = set()
+    stack = [start_old]
+    while stack:
+        state_idx = stack.pop()
+        if state_idx in reachable:
+            continue
+        reachable.add(state_idx)
+
+        state = states[state_idx]
+        # Add epsilon transitions
+        for eps_target in state.eps:
+            if eps_target not in reachable:
+                stack.append(eps_target)
+        # Add edge transitions
+        for edge in state.edges:
+            if edge.to not in reachable:
+                stack.append(edge.to)
+
+    # Create new states for all reachable states
+    for old_idx in reachable:
+        old_state = states[old_idx]
+        new_idx = _new_state(states, old_state.accept)
+        state_map[old_idx] = new_idx
+
+        # Copy other state properties
+        new_state = states[new_idx]
+        new_state.require_bol = old_state.require_bol
+        new_state.require_eol = old_state.require_eol
+        new_state.enter_groups = old_state.enter_groups.copy()
+        new_state.exit_groups = old_state.exit_groups.copy()
+
+    # Clone all edges and epsilon transitions
+    for old_idx in reachable:
+        old_state = states[old_idx]
+        new_idx = state_map[old_idx]
+        new_state = states[new_idx]
+
+        # Clone epsilon transitions
+        for eps_target in old_state.eps:
+            if eps_target in state_map:
+                new_state.eps.append(state_map[eps_target])
+
+        # Clone edges
+        for edge in old_state.edges:
+            if edge.to in state_map:
+                new_state.edges.append(Edge(edge.kind, edge.data, state_map[edge.to]))
+
+    return state_map[start_old], state_map[accept_old]
+
+
 def _repeat_range(
     states: List[State], base: Tuple[int, int], min_: int, max_: Optional[int]
 ) -> Tuple[int, int]:
@@ -139,28 +207,15 @@ def _repeat_range(
     Thompson expansion: repeat at least `min_` times + optionally (max_-min_) times;
     max_=None means no upper limit.
     """
-    # First build an "empty fragment" (for concatenation convenience)
+    # Start with an empty entry state
     s_all = _new_state(states)
-    a_all = _new_state(states, True)
-    _mark_accept(states, a_all, False)  # will be reset later
-
-    _cur_s, cur_a = s_all, s_all  # initially empty
+    cur_a = s_all  # initially empty
     # Required min_ repetitions: concatenate sequentially
     for _ in range(min_):
-        s, a = base
-        midS = _new_state(states)
-        midA = _new_state(states, True)
-        _mark_accept(states, midA, False)
-
-        if cur_a == s_all:
-            # Initial connection
-            _add_eps(states, s_all, midS)
-        else:
-            _add_eps(states, cur_a, midS)
-
-        _add_eps(states, midS, s)
-        _add_eps(states, a, midA)
-        cur_a = midA
+        s, a = _clone_fragment(states, base)
+        _mark_accept(states, a, False)
+        _add_eps(states, cur_a, s)
+        cur_a = a
 
     if min_ == 0:
         # Allow empty: jump from start directly to current a
@@ -170,45 +225,39 @@ def _repeat_range(
     if max_ is not None:
         reps = max(0, max_ - min_)
         for _ in range(reps):
-            s, a = base
-            midS = _new_state(states)
-            midA = _new_state(states, True)
-            _mark_accept(states, midA, False)
+            s, a = _clone_fragment(states, base)
+            _mark_accept(states, a, False)
 
-            # Option: skip to midA
-            _add_eps(states, cur_a, midA)
+            # Create new accept for this optional iteration
+            new_a = _new_state(states)
+
+            # Option: skip to new_a
+            _add_eps(states, cur_a, new_a)
             # Or: take base once
-            _add_eps(states, cur_a, midS)
-            _add_eps(states, midS, s)
-            _add_eps(states, a, midA)
+            _add_eps(states, cur_a, s)
+            _add_eps(states, a, new_a)
 
-            cur_a = midA
+            cur_a = new_a
 
         # End
         _mark_accept(states, cur_a, True)
         return s_all, cur_a
 
     # No upper bound: add loop at the tail
-    s, a = base
-    loopS = _new_state(states)
-    loopA = _new_state(states, True)
-    _mark_accept(states, loopA, False)
+    s, a = _clone_fragment(states, base)
+    _mark_accept(states, a, False)
 
-    if cur_a == s_all:
-        _add_eps(states, s_all, loopS)
-    else:
-        _add_eps(states, cur_a, loopS)
+    loop_state = _new_state(states)
 
-    # Optionally skip
-    _add_eps(states, loopS, loopA)
-    # Or execute base once and go to loopA
-    _add_eps(states, loopS, s)
-    _add_eps(states, a, loopA)
-    # From loopA back to loopS for repetition
-    _add_eps(states, loopA, loopS)
+    # From current position to loop entry
+    _add_eps(states, cur_a, loop_state)
 
-    _mark_accept(states, loopA, True)
-    return s_all, loopA
+    # From loop: either exit (will mark true later) or take base once more
+    _add_eps(states, loop_state, s)
+    _add_eps(states, a, loop_state)
+
+    _mark_accept(states, loop_state, True)
+    return s_all, loop_state
 
 
 # ---------- AST traversal ----------
@@ -305,10 +354,3 @@ def _build(node: ast.Node, states: List[State]) -> Tuple[int, int]:
         return s, a
 
     raise NotImplementedError(f"compile: unsupported node {type(node).__name__}")
-
-
-def compile(tree: ast.Node) -> NFA:
-    states: List[State] = []
-    start, _ = _build(tree, states)
-    accepts = {i for i, st in enumerate(states) if st.accept}
-    return NFA(states=states, start=start, accepts=accepts)
