@@ -1,6 +1,6 @@
 # Engine Checklist
 
-* [x] **Define subset & flags** (readme spec): literals, `. [] ^ $ () | * + ? {m,n}`, escapes, ranges; flags `i/m/s/g`;
+* [x] **Define subset & flags** (readme spec): literals, `. [] ^ $ () | * + ? {m,n}`, escapes, ranges; flags `i/m/s`;
   anchors `^/$`.
 * [x] **Tokens** (`tokens.py`): metachars, escapes (inside/outside `[]`), `\t \n \r \xHH`, shorthands as
   `Shorthand('d'|'w'|'s'|…)`.
@@ -19,7 +19,7 @@
 * [x] **Matcher** (`matcher.py`): ε-closure NFA simulation
 
     * [x] Case-folding for `i`, line vs. string semantics for `m`, dotall for `s`
-    * [x] First vs. global (`g`) search; leftmost-longest greedy behavior
+    * [x] Leftmost-longest greedy behavior (global search by default)
     * [x] Capture spans for numbered groups
 * [ ] **Replace / Split semantics**: `$1…` back-refs; count; split with `limit` (optional)
 * [x] **Performance sanity**: typical pattern compiles <150ms; match small texts <5–10ms; simple micro-bench script
@@ -34,7 +34,7 @@
 * [x] **Property tests** (Hypothesis): random small patterns/inputs vs Python `re` where semantics overlap
 * [x] **Golden tests**: curated patterns → expected spans/captures; replace/split outputs
 
-      
+
 # Supported Syntax
 
 | **Feature**            | **Syntax**     | **Description**                                                           | **Example**         | **Matches** |          |
@@ -58,6 +58,5 @@
 | `i`      | Ignore Case | Case-insensitive matching (`A` = `a`)                             |
 | `m`      | Multiline   | `^` and `$` match at line boundaries                              |
 | `s`      | Dotall      | `.` matches `\n` as well                                          |
-| `g`      | Global      | (default in this engine) return all matches instead of first only |
 
-
+Note: Global search (returning all matches) is the default behavior of this engine.
