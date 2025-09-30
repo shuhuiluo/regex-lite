@@ -1,36 +1,31 @@
 import React, { useState } from "react";
-import "./App.css";
+import "./app.css";
+import { Match, match as runMatch } from "./api";
 
 const App: React.FC = () => {
   const [pattern, setPattern] = useState("");
   const [flags, setFlags] = useState("");
   const [text, setText] = useState("");
-  const [matches, setMatches] = useState<any[]>([]);
-  const [error, setError] = useState("");
-
-  const useMock = import.meta.env.VITE_USE_MOCK === "true";
-  const apiBase = "http://localhost:8000";
-  const apiPrefix = useMock ? "/mock" : "";
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    setError("");
+    setError(null);
     setMatches([]);
 
-    const body = { pattern, flags, text };
-
     try {
-      const response = await fetch(`${apiBase}${apiPrefix}/regex/match`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const response = await runMatch({ pattern, flags, text });
+      setMatches(response.matches ?? []);
+    } catch (err: unknown) {
+      let message = "Something went wrong while contacting the server.";
 
-      if (!response.ok) throw new Error("Server error");
+      if (err instanceof Error) {
+        message = err.message;
+      } else if (typeof err === "string") {
+        message = err;
+      }
 
-      const data = await response.json();
-      setMatches(data.matches || []);
-    } catch (err: any) {
-      setError("Something went wrong: " + err.message);
+      setError(message);
     }
   };
 
@@ -40,26 +35,17 @@ const App: React.FC = () => {
 
       <label>
         Pattern:
-        <input
-          value={pattern}
-          onChange={(e) => setPattern(e.target.value)}
-        />
+        <input value={pattern} onChange={(e) => setPattern(e.target.value)} />
       </label>
 
       <label>
         Flags (i, m, s, g):
-        <input
-          value={flags}
-          onChange={(e) => setFlags(e.target.value)}
-        />
+        <input value={flags} onChange={(e) => setFlags(e.target.value)} />
       </label>
 
       <label>
         Input Text:
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
+        <textarea value={text} onChange={(e) => setText(e.target.value)} />
       </label>
 
       <button onClick={handleSubmit}>Run Match</button>
@@ -76,7 +62,7 @@ const App: React.FC = () => {
                 {text.slice(match.span[0], match.span[1])}"
               </p>
               <ul>
-                {match.groups.map((group: [number, number] | null, i: number) =>
+                {match.groups.map((group, i) =>
                   group ? (
                     <li key={i}>
                       Group {i + 1}: [{group[0]}, {group[1]}] → "
@@ -84,7 +70,7 @@ const App: React.FC = () => {
                     </li>
                   ) : (
                     <li key={i}>Group {i + 1}: null</li>
-                  )
+                  ),
                 )}
               </ul>
             </div>
