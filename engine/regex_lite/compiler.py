@@ -74,18 +74,17 @@ class NFA:
         return s, a
 
     def _frag_charclass(self, negated: bool, items: Iterable) -> Tuple[int, int]:
-        from . import ast as A
-
         lits: Set[str] = set()
         ranges: List[Tuple[str, str]] = []
         for it in items:
-            if isinstance(it, A.Range):
+            if isinstance(it, ast.Range):
                 ranges.append((str(it.start), str(it.end)))
-            elif isinstance(it, A.Literal):
+            elif isinstance(it, ast.Literal):
                 lits.add(str(it.char))
             else:
-                # Fallback: treat as a character
-                lits.add(str(it))
+                raise TypeError(
+                    f"Unexpected character class item type {type(it).__name__}: {it!r}"
+                )
         s = self._new_state()
         a = self._new_state(True)
         self._add_edge(s, "class", (negated, frozenset(lits), tuple(ranges)), a)
@@ -190,6 +189,8 @@ class NFA:
         Thompson expansion: repeat at least `min_` times + optionally (max_-min_) times;
         max_=None means no upper limit.
         """
+        if max_ is not None and max_ < min_:
+            raise ValueError(f"Invalid repeat range: {{{min_},{max_}}} (max < min)")
         # Start with an empty entry state
         s_all = self._new_state()
         cur_a = s_all  # initially empty
