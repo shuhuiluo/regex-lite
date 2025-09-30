@@ -45,13 +45,13 @@
 | **Character ranges**   | `[a-z]`        | Matches one character from the range                                      | `[a-c]` on `zab`    | `a`, `b`    |          |
 | **Negated classes**    | `[^abc]`       | Matches one character *not* in the set                                    | `[^a]` on `bat`     | `b`, `t`    |          |
 | **Anchors**            | `^` / `$`      | Match start / end of string (or line with `m` flag)                       | `^ab` on `abxx`     | `ab`        |          |
-| **Grouping**           | `( ... )`      | Groups sub-expressions (capturing supported in future)                    | `(ab)+` on `ababx`  | `abab`      |          |
+| **Grouping**           | `( ... )`      | Groups sub-expressions (capturing supported)                              | `(ab)+` on `ababx`  | `abab`      |          |
 | **Alternation**        | `a\|b`         | Matches left or right branch                                              | \`a                 | b`on`bab\`  | `b`, `b` |
 | **Quantifiers**        | `* + ? {m,n}`  | Repetition: 0+ / 1+ / 0-1 / range                                         | `a{2,3}` on `caaad` | `aaa`       |          |
 | **Escapes**            | `\d \w \s`     | Shorthand classes (digit/word/space)                                      | `\d+` on `ab123c`   | `123`       |          |
 | **Escaped literals**   | `\.` `\+` etc. | Treat metacharacter as literal                                            | `a\.b` on `a.b`     | `a.b`       |          |
 
-#Supoorted Flags
+# Supported Flags
 
 | **Flag** | **Name**    | **Effect**                                                        |
 | -------- | ----------- | ----------------------------------------------------------------- |
