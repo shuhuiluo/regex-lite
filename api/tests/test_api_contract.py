@@ -81,7 +81,7 @@ def test_invalid_pattern_error(client):
     # Skip for mock engine (it uses Python's re which has different error messages)
     if use_mock:
         return
-    
+
     # Unmatched parenthesis
     resp = cli.post(
         "/regex/match",
@@ -91,7 +91,7 @@ def test_invalid_pattern_error(client):
     data = resp.json()
     assert "error" in data["detail"]
     assert "position" in data["detail"]
-    
+
     # Invalid quantifier
     resp = cli.post(
         "/regex/match",
@@ -105,7 +105,7 @@ def test_invalid_pattern_in_replace(client):
     cli, use_mock = client
     if use_mock:
         return
-    
+
     resp = cli.post(
         "/regex/replace",
         json={"pattern": "[abc", "text": "test", "flags": "", "repl": "x"},
@@ -120,7 +120,7 @@ def test_invalid_pattern_in_split(client):
     cli, use_mock = client
     if use_mock:
         return
-    
+
     resp = cli.post(
         "/regex/split",
         json={"pattern": "{3,2}", "text": "test", "flags": ""},
@@ -128,4 +128,3 @@ def test_invalid_pattern_in_split(client):
     assert resp.status_code == 400
     data = resp.json()
     assert "error" in data["detail"]
-    

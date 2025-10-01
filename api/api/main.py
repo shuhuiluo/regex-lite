@@ -8,7 +8,7 @@ from .adapters import get_engine
 from .schemas import (
     CompileRequest,
     CompileResponse,
-    ErrorResponse,
+    ErrorResponse,  # noqa: F401
     MatchRequest,
     MatchResponse,
     ReplaceRequest,
@@ -48,7 +48,7 @@ def create_app() -> FastAPI:
         except NotImplementedError as exc:
             raise HTTPException(status_code=501, detail=str(exc))
         except Exception as exc:
-            raise HTTPException(status_code=500, detail=f"Internal error: {str(exc)}")      
+            raise HTTPException(status_code=500, detail=f"Internal error: {str(exc)}")
 
     @app.post("/regex/replace", response_model=ReplaceResponse)
     def regex_replace(req: ReplaceRequest) -> ReplaceResponse:
@@ -66,7 +66,7 @@ def create_app() -> FastAPI:
         except NotImplementedError as exc:
             raise HTTPException(status_code=501, detail=str(exc))
         except Exception as exc:
-            raise HTTPException(status_code=500, detail=f"Internal error: {str(exc)}")   
+            raise HTTPException(status_code=500, detail=f"Internal error: {str(exc)}")
 
     @app.post("/regex/split", response_model=SplitResponse)
     def regex_split(req: SplitRequest) -> SplitResponse:
