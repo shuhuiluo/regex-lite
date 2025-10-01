@@ -50,7 +50,7 @@ class MockEngine(EngineAdapter):
     def split(self, pattern: str, flags: str, text: str) -> List[str]:
         regex = re.compile(pattern, _translate_flags(flags))
         return regex.split(text)
-    
+
     def compile(self, pattern: str, flags: str, text: str) -> List[str]:
         raise NotImplementedError("Compile not implemented in MockEngine")
 
@@ -66,7 +66,7 @@ class RealEngine(EngineAdapter):
 
     def split(self, pattern: str, flags: str, text: str) -> List[str]:
         return matcher.split(pattern, text, flags)
-    
+
     def compile(self, pattern: str, flags: str, text: str) -> List[str]:
         raise NotImplementedError("Compile not implemented in RealEngine")
 

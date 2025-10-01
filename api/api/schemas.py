@@ -41,5 +41,10 @@ class SplitResponse(BaseModel):
     pieces: List[str]
 
 
+class ErrorResponse(BaseModel):
+    error: str
+    position: Optional[int] = None
+
+
 class CompileResponse(BaseModel):
     pass
