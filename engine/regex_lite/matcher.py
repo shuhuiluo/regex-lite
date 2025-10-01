@@ -261,19 +261,19 @@ def replace(pattern: str, flags: str, text: str, repl: str) -> Tuple[str, int]:
     Note: Does not support backreferences in replacement string yet.
     """
     spans = match_spans(pattern, text, flags)
-    
+
     if not spans:
         # If no matches, return original text and zero replacements
         return text, 0
-        
+
     # Build result by replacing matches from right to left
     # (avoids offset adjustments)
     result = text
     count = len(spans)
-    
+
     for start, end in reversed(spans):
         result = result[:start] + repl + result[end:]
-    
+
     return result, count
 
 
@@ -294,4 +294,3 @@ def split(pattern: str, text: str, flags: str = "") -> list[str]:
 
     pieces.append(text[last_end:])
     return pieces
-
