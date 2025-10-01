@@ -1,8 +1,7 @@
 # regex_lite/matcher.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Set, Optional, Tuple
-
+from typing import TYPE_CHECKING, List, Set, Tuple
 
 from . import parser
 from .compiler import compile as compile_nfa
