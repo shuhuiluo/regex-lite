@@ -1,7 +1,8 @@
 # regex_lite/matcher.py
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Set
+from typing import TYPE_CHECKING, List, Set, Optional, Tuple
+
 
 from . import parser
 from .compiler import compile as compile_nfa
@@ -252,3 +253,46 @@ def match_spans(pattern: str, text: str, flags: str = "") -> list[tuple[int, int
     """Return only the match spans; thin wrapper over :func:`match`."""
 
     return match(pattern, text, flags)
+
+
+def replace(self, pattern: str, flags: str, text: str, repl: str) -> Tuple[str, int]:
+    """
+    Replace all matches of pattern in text with repl string.
+    Returns tuple of (result_text, count_of_replacements).
+    Note: Does not support backreferences in replacement string yet.
+    """
+    spans = match_spans(pattern, text, flags)
+    
+    if not spans:
+        # If no matches, return original text and zero replacements
+        return text, 0
+        
+    # Build result by replacing matches from right to left
+    # (avoids offset adjustments)
+    result = text
+    count = len(spans)
+    
+    for start, end in reversed(spans):
+        result = result[:start] + repl + result[end:]
+    
+    return result, count
+
+
+def split(pattern: str, text: str, flags: str = "") -> list[str]:
+    """Split text by matches of pattern; return list of substrings between matches."""
+
+    spans = match_spans(pattern, text, flags)
+
+    if not spans:
+        return [text]
+
+    pieces: list[str] = []
+    last_end = 0
+
+    for start, end in spans:
+        pieces.append(text[last_end:start])
+        last_end = end
+        
+    pieces.append(text[last_end:])
+    return pieces
+

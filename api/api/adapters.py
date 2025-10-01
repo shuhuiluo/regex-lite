@@ -54,15 +54,15 @@ class MockEngine(EngineAdapter):
 
 class RealEngine(EngineAdapter):
     def match(self, pattern: str, flags: str, text: str) -> List[dict]:
-        return matcher.match(pattern, text, flags)
+        return matcher.match_with_groups(pattern, text, flags)
 
     def replace(
         self, pattern: str, flags: str, text: str, repl: str
     ) -> Tuple[str, int]:
-        raise NotImplementedError
+        return matcher.replace(pattern, text, repl, flags)
 
     def split(self, pattern: str, flags: str, text: str) -> List[str]:
-        raise NotImplementedError
+        return matcher.split(pattern, text, flags)
 
 
 def get_engine() -> EngineAdapter:
