@@ -8,7 +8,6 @@ from .adapters import get_engine
 from .schemas import (
     CompileRequest,
     CompileResponse,
-    ErrorResponse,  # noqa: F401
     MatchRequest,
     MatchResponse,
     ReplaceRequest,

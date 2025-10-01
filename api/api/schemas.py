@@ -42,11 +42,6 @@ class SplitResponse(BaseModel):
     pieces: List[str]
 
 
-class ErrorResponse(BaseModel):
-    error: str
-    position: Optional[int] = None
-
-
 class StateInfo(BaseModel):
     """Information about a single NFA state."""
 

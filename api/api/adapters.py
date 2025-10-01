@@ -55,7 +55,7 @@ class MockEngine(EngineAdapter):
         regex = re.compile(pattern, _translate_flags(flags))
         return regex.split(text)
 
-    def compile(self, pattern: str, flags: str, text: str) -> Dict[str, Any]:
+    def compile(self, pattern: str, flags: str) -> Dict[str, Any]:
         """MockEngine doesn't expose NFA structure."""
         raise NotImplementedError(
             "Compile endpoint not available with mock engine - use real engine"
@@ -74,10 +74,8 @@ class RealEngine(EngineAdapter):
     def split(self, pattern: str, flags: str, text: str) -> List[str]:
         return matcher.split(pattern, text, flags)
 
-    def compile(self, pattern: str, flags: str, text: str) -> Dict[str, Any]:
-        raise NotImplementedError(
-            "Compile endpoint not available with Real engine - use real engine"
-        )
+    def compile(self, pattern: str, flags: str) -> Dict[str, Any]:
+        raise NotImplementedError("Compile endpoint not yet implemented in RealEngine")
 
 
 def get_engine() -> EngineAdapter:
