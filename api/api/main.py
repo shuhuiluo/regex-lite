@@ -89,9 +89,19 @@ def create_app() -> FastAPI:
     @app.post("/regex/compile", response_model=CompileResponse)
     def regex_compile(req: CompileRequest) -> CompileResponse:
         try:
-            pieces = engine.compile(req.pattern, req.flags, req.text)
+            result = engine.compile(req.pattern, req.flags)
+            return CompileResponse(**result)
+        except RegexSyntaxError as exc:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": str(exc),
+                    "position": exc.position,
+                },
+            )
         except NotImplementedError as exc:
             raise HTTPException(status_code=501, detail=str(exc))
-        return CompileResponse(pieces=pieces)
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Internal error: {str(exc)}")
 
     return app

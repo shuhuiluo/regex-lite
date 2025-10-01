@@ -19,8 +19,9 @@ class SplitRequest(MatchRequest):
     pass
 
 
-class CompileRequest(MatchRequest):
-    pass
+class CompileRequest(BaseModel):
+    pattern: str
+    flags: str = ""
 
 
 class Match(BaseModel):
@@ -46,5 +47,21 @@ class ErrorResponse(BaseModel):
     position: Optional[int] = None
 
 
+class StateInfo(BaseModel):
+    """Information about a single NFA state."""
+
+    index: int
+    accept: bool
+    edges: List[dict]  # List of edge information
+    epsilon_transitions: List[int]  # List of state indices
+    require_bol: bool = False
+    require_eol: bool = False
+
+
 class CompileResponse(BaseModel):
-    pass
+    """Response containing NFA structure information."""
+
+    start_state: int
+    accept_states: List[int]
+    state_count: int
+    states: List[StateInfo]
