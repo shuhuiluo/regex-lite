@@ -1,5 +1,6 @@
 from regex_lite.matcher import split
 
+
 def test_split_basic():
     # Simple split
     pieces = split(r" ", "a b c", "")

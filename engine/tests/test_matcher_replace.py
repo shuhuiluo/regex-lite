@@ -1,5 +1,6 @@
 from regex_lite.matcher import replace
 
+
 def test_replace_basic():
     # Simple replacement
     result, count = replace(r"\d+", "", "abc 123 xyz 456", "#")
