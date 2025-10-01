@@ -6,4 +6,4 @@ def test_matcher_smoke():
     # zero-length producer shouldn't loop; matches at every position boundary
     assert match_spans("a*", "b") == [(0, 0), (1, 1)]
     assert match("^a|b", "xbax", "") == [(1, 2)]
-    assert match(r"\d+", "abc 123 xyz", "") == [(4, 7)]
+    assert match(r"\d+", "abc 123 xyz", "") == [(4, 7)]  
