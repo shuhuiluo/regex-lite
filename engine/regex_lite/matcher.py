@@ -255,7 +255,7 @@ def match_spans(pattern: str, text: str, flags: str = "") -> list[tuple[int, int
     return match(pattern, text, flags)
 
 
-def replace(self, pattern: str, flags: str, text: str, repl: str) -> Tuple[str, int]:
+def replace(pattern: str, flags: str, text: str, repl: str) -> Tuple[str, int]:
     """
     Replace all matches of pattern in text with repl string.
     Returns tuple of (result_text, count_of_replacements).
@@ -292,7 +292,7 @@ def split(pattern: str, text: str, flags: str = "") -> list[str]:
     for start, end in spans:
         pieces.append(text[last_end:start])
         last_end = end
-        
+
     pieces.append(text[last_end:])
     return pieces
 
