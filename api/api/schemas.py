@@ -19,6 +19,10 @@ class SplitRequest(MatchRequest):
     pass
 
 
+class CompileRequest(MatchRequest):
+    pass
+
+
 class Match(BaseModel):
     span: Tuple[int, int]
     groups: List[Optional[Tuple[int, int]]]
@@ -35,3 +39,7 @@ class ReplaceResponse(BaseModel):
 
 class SplitResponse(BaseModel):
     pieces: List[str]
+
+
+class CompileResponse(BaseModel):
+    pass

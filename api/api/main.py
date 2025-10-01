@@ -11,6 +11,8 @@ from .schemas import (
     ReplaceResponse,
     SplitRequest,
     SplitResponse,
+    CompileRequest,
+    CompileResponse,
 )
 
 
@@ -51,5 +53,13 @@ def create_app() -> FastAPI:
         except NotImplementedError as exc:
             raise HTTPException(status_code=501, detail=str(exc))
         return SplitResponse(pieces=pieces)
+    
+    @app.post("/regex/compile", response_model=CompileResponse)
+    def regex_compile(req: CompileRequest) -> CompileResponse:
+        try:
+            pieces = engine.compile(req.pattern, req.flags, req.text)
+        except NotImplementedError as exc:
+            raise HTTPException(status_code=501, detail=str(exc))
+        return CompileResponse(pieces=pieces)
 
     return app
