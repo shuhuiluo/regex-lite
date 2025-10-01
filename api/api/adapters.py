@@ -59,7 +59,7 @@ class RealEngine(EngineAdapter):
     def replace(
         self, pattern: str, flags: str, text: str, repl: str
     ) -> Tuple[str, int]:
-        return matcher.replace(pattern, text, repl, flags)
+        return matcher.replace(pattern, flags, text, repl)
 
     def split(self, pattern: str, flags: str, text: str) -> List[str]:
         return matcher.split(pattern, text, flags)
