@@ -3,12 +3,14 @@ from api.main import create_app
 from fastapi.testclient import TestClient
 
 
-@pytest.fixture(params=[True], ids=["mock"])
+@pytest.fixture(params=[True, False], ids=["mock", "real"])
 def client(request, monkeypatch):
     """Test client fixture.
 
     Currently only tests MockEngine. When matcher is implemented,
     change params to [True, False] to test both engines.
+    
+    Tests both MockEngine and RealEngine.
     """
     use_mock = request.param
     monkeypatch.setenv("USE_MOCK_ENGINE", "1" if use_mock else "0")
